@@ -1,0 +1,11 @@
+# To get global dataset
+augur filter \
+  --metadata metadata_genbank.tsv.gz \
+  --sequences sequences_genbank.fasta.xz \
+  --sequence-index sequences_genbank_index.tsv \
+  --query "region != 'Africa'" \
+  --max-date 2021-10-31 \
+  --group-by country month year \
+  --subsample-max-sequences 100000 \
+  --output-sequences sequences_global.fasta.xz \
+  --output-metadata metadata_global.tsv.gz

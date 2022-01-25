@@ -1,0 +1,82 @@
+# Define inputs.
+inputs:
+    # Focal sequences from Bhavna Chohan et al.
+  - name: study
+    metadata: ../ncov-kenya/data/metadata_focal.tsv
+    sequences: ../ncov-kenya/data/sequences_focal.fasta
+    skip_sanitize_metadata: true
+    # All Genbank data from Africa.
+  - name: africa
+    metadata: ../ncov-kenya/data/metadata_africa.tsv
+    sequences: ../ncov-kenya/data/sequences_africa.fasta
+    skip_sanitize_metadata: true
+    # 100,000 samples from rest of globe
+    # sampled evenly by country, year, and month
+  - name: global
+    metadata: ../ncov-kenya/data/metadata_global.tsv.gz
+    sequences: ../ncov-kenya/data/sequences_global.fasta.xz
+    skip_sanitize_metadata: true
+    # References includes in the ncov workflow and required for rooting the time tree.
+  - name: references
+    metadata: data/references_metadata.tsv
+    sequences: data/references_sequences.fasta
+    skip_sanitize_metadata: true
+
+# Define files.
+files:
+  auspice_config: ../ncov-kenya/auspice_config.json
+  include: ../ncov-kenya/params/include.txt
+  lat_longs: ../ncov-kenya/params/lat_longs.tsv
+
+# Define builds.
+builds:
+  # Define a South African build. Replace "south-africa" and "South Africa" with
+  # your country, to define a new country-specific analysis.
+  kenya:
+    region: Africa
+    country: Kenya
+    max_date: 2021-10-31
+    subsampling_scheme: focal-contextual-country
+
+# Adds flag to run PANGO on samples in build.
+run_pangolin: True
+
+# GenBank data includes "Wuhan-Hu-1/2019" which we use as the root for this build
+# as Wuhan/Hu-1/2019 is not in the data.
+refine:
+  root: "Wuhan-Hu-1/2019"
+
+# Define subsampling schemes.
+subsampling:
+  focal-contextual-country:
+    focal:
+      # Include all samples in focal set.
+      query: --query "study=='yes'"
+    contextual:
+      # Select data genetically proximal to focal set.
+      max_sequences: 100
+      max_date: --max-date {max_date}
+      priorities:
+        focus: focal
+        type: proximity
+    country:
+      # Select data in country of interest.
+      query: --query "country=='{country}'"
+      max_sequences: 1800
+      max_date: --max-date {max_date}
+      group_by: year month
+    regional:
+      # select data from region of interest for context
+      query: --query "(region=='{region}' & (country!='{country}'))"
+      max_sequences: 600
+      max_date: --max-date {max_date}
+      group_by: year month country
+      sample_scheme: "--probabilistic-sampling"
+    global:
+      # Select data from the rest of the world without any prioritization (i.e.,
+      # a random sample) for phylogenetic context.
+      query: --query "region!='{region}'"
+      max_sequences: 600
+      max_date: --max-date {max_date}
+      group_by: year month country
+      sampling_scheme: "--probabilistic-sampling"
