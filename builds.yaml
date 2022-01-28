@@ -27,6 +27,7 @@ files:
   auspice_config: ../ncov-kenya/auspice_config.json
   include: ../ncov-kenya/params/include.txt
   lat_longs: ../ncov-kenya/params/lat_longs.tsv
+  description: ../ncov-kenya/description.md
 
 # Define builds.
 builds:
@@ -54,7 +55,8 @@ subsampling:
       query: --query "study=='yes'"
     contextual:
       # Select data genetically proximal to focal set.
-      max_sequences: 100
+      max_sequences: 110
+      # Use 110 because ~10 samples in focal set will be auto included.
       max_date: --max-date {max_date}
       priorities:
         focus: focal
